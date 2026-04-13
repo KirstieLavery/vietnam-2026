@@ -293,24 +293,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 </head>
 <body>
 
-<!-- SETUP SCREEN (shown before Firebase configured) -->
-<div id="setup-screen" class="setup-screen" style="display:none">
-  <div class="setup-card">
-    <div style="font-size:36px;margin-bottom:12px">🇻🇳</div>
-    <h2>Vietnam 2026</h2>
-    <p>Enter your Firebase config to connect the shared trip planner. All four of you will see live updates!</p>
-    <textarea id="firebase-config-input" style="width:100%;height:120px;padding:10px;font-size:12px;font-family:monospace;border:1px solid var(--border);border-radius:8px;resize:vertical;margin-bottom:10px" placeholder='Paste your Firebase config object here, e.g.:
-{
-  "apiKey": "...",
-  "authDomain": "...",
-  "databaseURL": "...",
-  "projectId": "..."
-}'></textarea>
-    <button class="btn-primary" style="width:100%" onclick="saveFirebaseConfig()">Connect &amp; Start Planning</button>
-    <div id="config-error" class="error-msg"></div>
-    <p style="margin-top:16px;font-size:12px;color:var(--text-muted)">See the README for setup instructions.</p>
-  </div>
-</div>
+<!-- No setup screen needed - config is built in -->
 
 <!-- LOADING -->
 <div id="loading-screen" class="loading">
@@ -377,7 +360,15 @@ import { getDatabase, ref, set, onValue, push, remove, update }
 
 window._fb = { db: null, ref, set, onValue, push, remove, update };
 
-const CONFIG_KEY = 'vn2026_firebase_config';
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCJZY5BytRx1mHTQXreMAIi63hwCLu7BDw",
+  authDomain: "vietnam-2026-5256d.firebaseapp.com",
+  databaseURL: "https://vietnam-2026-5256d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "vietnam-2026-5256d",
+  storageBucket: "vietnam-2026-5256d.firebasestorage.app",
+  messagingSenderId: "784452554572",
+  appId: "1:784452554572:web:6fb16d1553be87265b89e9"
+};
 
 const defaultDays = [
   {date:'2026-07-07',label:'Day 1',location:'Hanoi (Arrival)',badge:'travel',entries:{
@@ -428,29 +419,9 @@ let daysRef, notesRef;
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
-// ---- INIT ----
 function tryInit() {
-  const saved = localStorage.getItem(CONFIG_KEY);
-  if (saved) {
-    try { startApp(JSON.parse(saved)); return; } catch(e) {}
-  }
-  document.getElementById('loading-screen').style.display = 'none';
-  document.getElementById('setup-screen').style.display = 'block';
+  startApp(FIREBASE_CONFIG);
 }
-
-window.saveFirebaseConfig = function() {
-  const raw = document.getElementById('firebase-config-input').value.trim();
-  try {
-    const cfg = JSON.parse(raw);
-    if (!cfg.apiKey || !cfg.projectId) throw new Error('Missing fields');
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
-    document.getElementById('setup-screen').style.display = 'none';
-    document.getElementById('loading-screen').style.display = 'block';
-    startApp(cfg);
-  } catch(e) {
-    document.getElementById('config-error').textContent = 'Invalid config — please check and try again.';
-  }
-};
 
 function startApp(cfg) {
   const app = initializeApp(cfg);
